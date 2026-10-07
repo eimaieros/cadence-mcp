@@ -1,0 +1,17 @@
+version: 2
+
+# The same reason as in framebudget: a workflow pinned to an old major keeps
+# passing for months and then fails on the day GitHub retires the runtime under
+# it. This turns that day into a pull request. The MCP SDK moves quickly too,
+# and a security fix in it should arrive the same way.
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    commit-message: { prefix: "ci" }
+
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }
+    commit-message: { prefix: "deps" }
