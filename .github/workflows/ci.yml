@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      # Node 20 reached end of life on 2026-04-30; testing against a runtime
+      # that no longer gets security patches is not coverage. Same matrix as
+      # framebudget and glaze.
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+
+      # `npm ci` and nothing after it: a lockfile out of step with package.json
+      # is a real failure, not a bookkeeping issue to paper over.
+      - run: npm ci
+
+      # The flag goes BEFORE the files — Node 24 ignores a node option placed
+      # after them. And `pipefail`, because `tee` always succeeds and would
+      # otherwise turn a failing suite into a green step.
+      - name: Tests, with the TAP kept
+        run: |
+          set -o pipefail
+          node --test --test-reporter=tap test/*.test.js | tee /tmp/testes.tap
+
+      - name: The README still states the right number of tests
+        run: node tools/contagem.js /tmp/testes.tap
+
+      - name: Types (tsc --strict over the JavaScript)
+        run: npm run check

@@ -1,0 +1,44 @@
+{
+  "name": "cadence-mcp",
+  "version": "0.1.0",
+  "description": "An MCP server that lets an AI assistant run a cadence practice interview: start it, ask, answer, score — with human confirmation before anything costly or irreversible.",
+  "type": "module",
+  "bin": {
+    "cadence-mcp": "src/server.js"
+  },
+  "main": "src/server.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js",
+    "check": "tsc -p jsconfig.json",
+    "contagem": "node tools/contagem.js",
+    "e2e": "node tools/e2e.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "author": "Rodrigo Figueiredo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eimaieros/cadence-mcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "interview",
+    "cadence"
+  ]
+}
