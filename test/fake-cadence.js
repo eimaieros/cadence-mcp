@@ -23,6 +23,8 @@ export const ACCOUNT = { email: "candidate@example.test", password: "correct hor
  * @property {string} [streamError]       emit an `error` event instead of finishing
  * @property {boolean} [streamCutOff]     close the stream before the `done` event
  * @property {number} [rateLimitNext]     answer the next N session calls with 429
+ * @property {string} [followUpTopic]     the interviewer also flags a follow-up with this topic
+ * @property {boolean} [toolFails]        the interviewer also makes a rubric call that fails
  */
 
 export async function startFakeCadence() {
@@ -38,6 +40,9 @@ export async function startFakeCadence() {
     refresh: new Map(),
     /** @type {Map<string, any>} */
     sessions: new Map(),
+    /** The interviewer's tool audit, per session — kept apart, as cadence keeps it in its own table. */
+    /** @type {Map<string, any[]>} */
+    toolCalls: new Map(),
     logins: 0,
     refreshes: 0,
     scoringCalls: 0,
@@ -124,7 +129,7 @@ export async function startFakeCadence() {
       return send(200, rows);
     }
 
-    const m = path.match(/^\/sessions\/([^/]+)(\/[a-z]+)?$/);
+    const m = path.match(/^\/sessions\/([^/]+)(\/[a-z-]+)?$/);
     const s = m ? state.sessions.get(m[1]) : undefined;
     if (!m || !s) return send(404, { detail: "Session not found" });
     const action = m[2] ?? "";
@@ -132,7 +137,11 @@ export async function startFakeCadence() {
     if (action === "" && req.method === "GET") return send(200, s);
     if (action === "" && req.method === "DELETE") {
       state.sessions.delete(s.id);
+      state.toolCalls.delete(s.id);
       return send(204);
+    }
+    if (action === "/tool-calls" && req.method === "GET") {
+      return send(200, state.toolCalls.get(s.id) ?? []);
     }
     if (action === "/cost") {
       return send(200, { spent_usd: s.cost_usd, ceiling_usd: 0.5, remaining_usd: Math.max(0, 0.5 - s.cost_usd) });
@@ -207,6 +216,7 @@ async function stream(res, rid, s, state) {
   for (const w of words) out += frame("token", { text: w });
   if (sc.streamError) out += frame("error", { detail: sc.streamError });
   else if (!sc.streamCutOff) {
+    recordToolCalls(state, s, index);
     s.turns.push({ id: "q", index, speaker: "interviewer", content: state.question, created_at: new Date().toISOString() });
     s.cost_usd += 0.001;
     out += frame("done", { index, content: state.question, cost_usd: 0.001 });
@@ -219,6 +229,57 @@ async function stream(res, rid, s, state) {
     await new Promise((r) => setImmediate(r));
   }
   res.end();
+}
+
+/**
+ * What cadence's interviewer looks up before writing a question, in the shape
+ * of its tool-call audit rows (schemas.ToolCallOut): a coverage check every
+ * time, and — when a scenario asks — a flagged follow-up or a failed call.
+ *
+ * @param {any} state
+ * @param {any} s
+ * @param {number} index
+ */
+function recordToolCalls(state, s, index) {
+  const sc = state.scenario;
+  const rows = state.toolCalls.get(s.id) ?? [];
+  const at = () => new Date().toISOString();
+  rows.push({
+    turn_index: index,
+    round: 1,
+    name: "get_coverage",
+    arguments: {},
+    result: {
+      questions_asked: s.turns.filter((/** @type {any} */ t) => t.speaker === "interviewer").length,
+      questions_remaining: 6,
+      focus_areas: s.focus_areas.map((/** @type {string} */ area) => ({ area, mentioned: false })),
+    },
+    ok: true,
+    created_at: at(),
+  });
+  if (sc.toolFails) {
+    rows.push({
+      turn_index: index,
+      round: 1,
+      name: "get_rubric",
+      arguments: { dimension: "Depth" },
+      result: { error: "Invalid arguments for get_rubric." },
+      ok: false,
+      created_at: at(),
+    });
+  }
+  if (sc.followUpTopic !== undefined) {
+    rows.push({
+      turn_index: index,
+      round: 2,
+      name: "flag_follow_up",
+      arguments: { topic: sc.followUpTopic, reason: "no_number" },
+      result: { recorded: true, topic: sc.followUpTopic, reason: "no_number" },
+      ok: true,
+      created_at: at(),
+    });
+  }
+  state.toolCalls.set(s.id, rows);
 }
 
 /** @param {import("node:http").IncomingMessage} req */
