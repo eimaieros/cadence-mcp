@@ -239,6 +239,17 @@ export class CadenceClient {
     return this.#json("GET", `/sessions/${encodeURIComponent(id)}/cost`, o);
   }
 
+  /**
+   * The interviewer's own tool calls for one session, oldest first — the audit
+   * cadence keeps of what its model looked up before each question.
+   *
+   * @param {string} id
+   * @param {CallOptions} [o]
+   */
+  listToolCalls(id, o = {}) {
+    return this.#json("GET", `/sessions/${encodeURIComponent(id)}/tool-calls`, o);
+  }
+
   /** @param {string} id @param {string} content @param {CallOptions} [o] */
   submitAnswer(id, content, o = {}) {
     return this.#json("POST", `/sessions/${encodeURIComponent(id)}/answers`, {

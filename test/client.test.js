@@ -116,6 +116,25 @@ describe("errors a person can act on", () => {
   });
 });
 
+describe("the interviewer's tool audit", () => {
+  it("reads it from /tool-calls, with the request ID it was given", async () => {
+    const s = await newSession();
+    await client.streamQuestion(s.id);
+
+    const rows = await client.listToolCalls(s.id, { requestId: "rid-tools" });
+
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].name, "get_coverage");
+    const req = api.state.requests.find((r) => r.path === `/sessions/${s.id}/tool-calls`);
+    assert.equal(req?.requestId, "rid-tools");
+  });
+
+  it("reports an unknown interview as a 404, not an empty audit", async () => {
+    const err = await failure(() => client.listToolCalls("7c0e6f9e-0000-4000-8000-000000000000"));
+    assert.equal(err.status, 404);
+  });
+});
+
 describe("streaming the next question", () => {
   it("returns the question cadence stored", async () => {
     const s = await newSession();

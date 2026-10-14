@@ -1,6 +1,6 @@
 # cadence-mcp
 
-![62 tests](https://img.shields.io/badge/tests-62-brightgreen)
+![70 tests](https://img.shields.io/badge/tests-70-brightgreen)
 ![Node 22+](https://img.shields.io/badge/node-22%2B-blue)
 ![MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -34,6 +34,7 @@ Claude   finish_interview
 | `submit_answer` | Records the user's answer to the last question | — |
 | `get_interview` | Transcript and, once finished, the scorecard | — |
 | `get_budget` | Spend against the interview's guardrail | — |
+| `get_tool_calls` | What the interviewer's own tools did before each question, as records | — |
 | `finish_interview` | Closes the interview and scores it | **yes** |
 | `delete_interview` | Deletes the interview and its scorecard, permanently | **yes** |
 
@@ -143,6 +144,21 @@ statement before the line that exists to carry it. The response header was
 right; nothing compared the two. [Fixed in cadence](https://github.com/eimaieros/cadence/commits/main),
 with the test extended to check the log line as well as the header.
 
+### The interviewer's tool calls come back as records
+
+cadence's interviewer calls its own tools before each question — check what the
+interview has covered, read the rubric for a dimension, flag an answer to come
+back to — and cadence keeps every call in its own table. `get_tool_calls` reads
+that audit.
+
+Most of what it returns the application computed. One value it did not: a
+flagged follow-up's topic is text the model wrote after reading the
+candidate's answer. So every argument and result is passed on as one JSON value
+on one line, cut at 300 characters with the original length shown, under a
+header that calls them data, not instructions. A topic with a newline in it
+cannot turn into a line of its own that reads like an instruction; there is a
+test that tries.
+
 ### stdout is the protocol
 
 Desktop clients start this server over stdio, so stdout carries MCP messages
@@ -161,7 +177,7 @@ once.
 
 ## Tests
 
-62 tests, no network: the tools run through the real MCP protocol (the SDK's
+70 tests, no network: the tools run through the real MCP protocol (the SDK's
 client, over a linked in-memory transport) against a fake cadence on a local
 socket that implements the parts of the contract a client depends on —
 status codes, FastAPI's error bodies, refresh-token rotation, `Retry-After`,
