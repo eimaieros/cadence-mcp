@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * One whole interview, through the real server process, against a running
- * cadence: start, two questions and answers, budget, finish (twice), read,
- * a closed-session error, a 404, delete.
+ * cadence: start, two questions and answers, the interviewer's tool calls,
+ * budget, finish (twice), read, a closed-session error, a 404, delete.
  *
  * Not part of CI — it needs cadence up and an account on it. It is how the
  * tools were checked against the real API rather than only against the fake
@@ -56,6 +56,10 @@ await call("ask_next_question", { session_id: id });
 await call("submit_answer", { session_id: id, answer: "I would start from the slow query log, add the index, and compare p95 before and after." });
 await call("ask_next_question", { session_id: id });
 await call("submit_answer", { session_id: id, answer: "An idempotency key on the POST, stored under a unique constraint." });
+// The interviewer's own tool audit. The scripted interviewer checks coverage
+// before its first question, so there is at least one real row to read back.
+const audit = await call("get_tool_calls", { session_id: id });
+if (!/get_coverage/.test(audit)) throw new Error("get_tool_calls did not return the coverage check cadence recorded");
 await call("get_budget", { session_id: id });
 await call("finish_interview", { session_id: id });
 await call("finish_interview", { session_id: id }); // already scored: no second prompt, no second charge
