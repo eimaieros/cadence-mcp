@@ -2,3 +2,7 @@ node_modules/
 *.log
 *.jsonl
 .env
+
+# Local notes
+*.md
+!README.md
