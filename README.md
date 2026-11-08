@@ -1,8 +1,9 @@
 # cadence-mcp
 
+[![CI](https://github.com/eimaieros/cadence-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/eimaieros/cadence-mcp/actions/workflows/ci.yml)
 ![70 tests](https://img.shields.io/badge/tests-70-brightgreen)
 ![Node 22+](https://img.shields.io/badge/node-22%2B-blue)
-![MIT](https://img.shields.io/badge/license-MIT-lightgrey)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 An [MCP](https://modelcontextprotocol.io) server that lets an AI assistant run a
 [cadence](https://github.com/eimaieros/cadence) practice interview: start one,
