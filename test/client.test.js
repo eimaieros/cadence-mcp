@@ -33,6 +33,25 @@ async function failure(fn) {
 }
 
 describe("authentication", () => {
+  it("lets go of a refused response before retrying it", async () => {
+    let cancelled = false;
+    let refusedOnce = false;
+    /** @type {typeof fetch} */
+    const fetchOnce401 = async (input, init) => {
+      if (!refusedOnce && String(input).endsWith("/sessions?limit=5")) {
+        refusedOnce = true;
+        const body = new ReadableStream({ cancel() { cancelled = true; } });
+        return new Response(body, { status: 401 });
+      }
+      return fetch(input, init);
+    };
+    const c = new CadenceClient({ baseUrl: api.url, ...ACCOUNT, fetch: fetchOnce401 });
+    await c.listSessions(5);
+    assert.equal(refusedOnce, true);
+    assert.equal(cancelled, true);
+  });
+
+
   it("logs in on the first call and sends the bearer token", async () => {
     assert.equal(client.authenticated, false);
     await client.listSessions(5);

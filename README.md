@@ -1,7 +1,7 @@
 # cadence-mcp
 
 [![CI](https://github.com/eimaieros/cadence-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/eimaieros/cadence-mcp/actions/workflows/ci.yml)
-![70 tests](https://img.shields.io/badge/tests-70-brightgreen)
+![70 tests](https://img.shields.io/badge/tests-71-brightgreen)
 ![Node 22+](https://img.shields.io/badge/node-22%2B-blue)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -178,7 +178,7 @@ once.
 
 ## Tests
 
-70 tests, no network: the tools run through the real MCP protocol (the SDK's
+71 tests, no network: the tools run through the real MCP protocol (the SDK's
 client, over a linked in-memory transport) against a fake cadence on a local
 socket that implements the parts of the contract a client depends on —
 status codes, FastAPI's error bodies, refresh-token rotation, `Retry-After`,

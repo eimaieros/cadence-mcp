@@ -192,6 +192,10 @@ export class CadenceClient {
     let res = await this.#send(method, path, o);
 
     if (res.status === 401 && !AUTH_PATHS.has(path)) {
+      // Nobody will read the refused response. Its body still holds the
+      // connection until it is consumed or cancelled, so let it go before
+      // opening another request.
+      await res.body?.cancel().catch(() => {});
       // Another call may already have rotated the pair while this one was in
       // flight. Retry with the new token before spending a rotation of our own.
       if (this.#access === used) await this.#renew();
