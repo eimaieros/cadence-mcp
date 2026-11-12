@@ -27,12 +27,12 @@
     "url": "https://github.com/eimaieros/cadence-mcp.git"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.1",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "keywords": [
     "mcp",
