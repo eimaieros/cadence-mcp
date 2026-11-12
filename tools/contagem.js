@@ -20,6 +20,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Every place the README states the test count. */
 const CLAIMS = [
+  // The badge says the number twice: in the image URL and in its alt text.
+  // Only the URL was checked, so a --fix once left "![70 tests]" in front of
+  // an image that said 71.
+  { file: "README.md", pattern: /!\[(\d+) tests\]/ },
   { file: "README.md", pattern: /tests-(\d+)-brightgreen/ },
   { file: "README.md", pattern: /(\d+) tests, no network/ },
 ];
